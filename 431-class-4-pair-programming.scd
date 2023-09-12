@@ -210,21 +210,21 @@ while {i < chords.size}
 
 };
 
-~checkChordInArray = { |chordToCheck|
+~checkChordInArray = { |chordToCheck, octave|
 	var triad;
 	triad = d[chordToCheck];
 	if (chordToCheck.isString) {
 		if (triad.isNil) {
 			"Chord not found!".postln
 		} {
-			triad.postln;
+			(triad + ([12,12,12]*(octave-4))).postln;
 		}
 	} {
 		"ERROR: Input type must be string".postln
 	}
 };
 
-~checkChordInArray.value("c major");
+~checkChordInArray.value("c major", 4);
 
 )
 
