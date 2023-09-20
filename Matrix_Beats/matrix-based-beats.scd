@@ -35,7 +35,7 @@ t = TempoClock.default; // the default clock
 t.tempo = 160/60; // 120 beats per second
 
 // the following loads sounds from the directory in which this file is located. the sound files are made available to the user in Buffers -- client-side representations of sampled audio stored in memory and available to the server for playing.
-b = [\kick, \sd, \hh1, \hh2].collect{|val| Buffer.read(s,(val++".wav").resolveRelative) };
+b = [\kick, \sd, \hh1, \hh2, \guitar].collect{|val| Buffer.read(s,(val++".wav").resolveRelative) };
 
 // a very simple sample-playing instrument.
 SynthDef(\playBuf,
@@ -52,7 +52,8 @@ SynthDef(\playBuf,
 	// ~p = [\k, \h, \r, \h, \s, \r, \h, \h]; // 1D drum pattern
 	// ~p = [\k, \h, \hH, \h, \s, \h, \hH, \h]; // 1D drum pattern
 	~p = [\h, Rest(), Rest(), \h, Rest(), Rest(), \h, Rest()]; //drill pattern
-// ~p = ~p.reverse;
+	// ~p = [\guitar];
+	// ~p = ~p.reverse;
 
 /* // THIS WILL NOT WORK WITHOUT THE ~invFunc FUNCTION -- YOU HAVE TO MAKE THAT ;)
 ~invInts = ~invFunc.([0,-3,-2,-3,1,-3,-2,-3]);
@@ -65,6 +66,7 @@ SynthDef(\playBuf,
 ~s = List[]; // list for the snare drum
 ~h = List[]; // list for the hi-hat
 ~hH = List[]; // list for the other hi-hat
+~guitar = List[];
 
 // create separate "parts" for each drum. Fills the array with short values where the symbol is present in the original beat, and with Rests where there are no symbols.
 ~p.size.do {|i|
@@ -72,7 +74,19 @@ SynthDef(\playBuf,
 	if (~p[i] == \s, {~s.add(0.25)}, {~s.add(Rest(0.25))});
 	if (~p[i] == \h, {~h.add(0.25)}, {~h.add(Rest(0.25))});
 	if (~p[i] == \hH, {~hH.add(0.25)}, {~hH.add(Rest(0.25))});
+	if (~p[i] == \guitar, {~guitar.add(0.25)}, {~guitar.add(Rest(0.25))});
 };
+
+
+
+
+
+
+
+
+
+
+	// testing testing 123
 
 
 // see them all
@@ -80,6 +94,7 @@ SynthDef(\playBuf,
 ~s.postln;
 ~h.postln;
 ~hH.postln;
+~guitar.postln;
 
 s.sync; // the sync statement causes the below to wait until all asynchronous stuff above has completed.
 
@@ -87,10 +102,11 @@ s.sync; // the sync statement causes the below to wait until all asynchronous st
 	~snare = Pbind(\instrument, \playBuf, \dur, Pseq(~s, inf), \buffer, b[1], \amp, 1.0);
 	~hat = Pbind(\instrument, \playBuf, \dur, Pseq(~h, inf), \buffer, b[2], \amp, 0.55);
 	~hatOpen = Pbind(\instrument, \playBuf, \dur, Pseq(~hH, inf), \buffer, b[3], \amp, 0.35);
+	~guitar = Pbind(\instrument, \playBuf, \dur, Pseq(~guitar, inf), \buffer, b[4], \amp, 1.0);
 
 // Here your simple, yet lit beat
 
-	Ppar([~kick, ~snare, ~hat, ~hatOpen], inf).play;
+	Ppar([~kick, ~snare, ~hat, ~hatOpen, ~guitar], inf).play;
 
 }
 )
