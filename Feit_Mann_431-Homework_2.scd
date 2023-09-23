@@ -25,13 +25,16 @@ When evaluated, the expression should:
 
 
 ( // Your code here
-
-
-
-
-
+var globalVar;
+{
+	var localVar;
+	var total;
+	globalVar = 2;
+	localVar = 3;
+	total = localVar * globalVar;
+	total.postln;
+}.()
 )
-
 
 /* Problem 2.
 
@@ -45,9 +48,24 @@ Write an expression that:
 
 (  // Your code here
 
-
-
+{
+	var arr = Array.new(8);
+	while {arr.size < 8} {
+		var temp = 10.rand;
+		if(arr.includes(temp))
+		{
+			// "arr already contains temp".postln;
+		} {
+			arr.add(temp);
+			// "temp value added".postln;
+			// arr.size.postln;
+		}
+	};
+	~envArr = arr;
+	~envArr.postln;
+}.()
 )
+
 
 
 /* Problem 3a.
@@ -63,11 +81,30 @@ Write an expression that:
 */
 
 (  // Your code here
-
-
-
-
-
+{
+	var arr = Array.new(100);
+	var highToLow;
+	for(0, 99)
+	{
+		arg i;
+		var newDec = i * 0.01;
+		arr.add(newDec);
+	};
+	arr.do({
+		arg item, i;
+		var itemAsInt = 24 + (92 - 24) * item;
+		itemAsInt = itemAsInt.round(1);
+		arr[i] = itemAsInt;
+	});
+	arr.as(Set).as(Array).sort;
+	highToLow = arr.reverse;
+	highToLow.do({
+		arg item, i;
+		var formatted = item.asString.replace(".0", "");
+		highToLow[i] = formatted;
+	});
+	("highToLow: \n" ++ highToLow ++ "\nsize: " ++ highToLow.size).postln;
+}.()
 )
 
 
@@ -81,11 +118,16 @@ Achieves an array with 100 unique float values (between 0 and 1 inclusive) round
 
 
 (  // Your code here
-
-
-
-
-
+{
+	var arr = Array.new(100);
+	var index = 1.00;
+	while {index >= 0.00}
+	{
+		arr.add(index);
+		index = index - 0.01;
+	};
+	arr.postln;
+}.()
 )
 
 
@@ -106,7 +148,6 @@ Note: you will not be graded-down if your code is longer, is multiline, etc.  Th
 * all you need to know about MIDI for now is that MIDI numbers are integers between 0-127
 
 */
-
 (
 ~array = [];
 ~scale = Scale.major;
@@ -116,10 +157,20 @@ Note: you will not be graded-down if your code is longer, is multiline, etc.  Th
 // ~scale.size.do {|i| ~scale[i].postln;};
 
 // Code your statement here
-
-
+{
+	forBy(24, 72, 12)
+	{
+		arg index;
+		~scale.size.do
+		{
+			arg degree;
+			var note = ~scale[degree] + index;
+			note = note.asString.replace(".0", "");
+			~array = ~array.add(note);
+		}
+	}
+}.()
 )
-
 // Post your results
 ~array.postln;
 
