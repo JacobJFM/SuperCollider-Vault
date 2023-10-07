@@ -35,7 +35,7 @@ t = TempoClock.default; // the default clock
 t.tempo = 160/60; // 120 beats per second
 
 // the following loads sounds from the directory in which this file is located. the sound files are made available to the user in Buffers -- client-side representations of sampled audio stored in memory and available to the server for playing.
-b = [\kick, \sd, \hh1, \hh2, \guitar].collect{|val| Buffer.read(s,(val++".wav").resolveRelative) };
+	b = [\kick, \sd, \hh1, \hh2, \guitar].collect{|val| Buffer.read(s,("samples/"++val++".wav").resolveRelative) };
 
 // a very simple sample-playing instrument.
 SynthDef(\playBuf,
@@ -107,6 +107,10 @@ s.sync; // the sync statement causes the below to wait until all asynchronous st
 // Here your simple, yet lit beat
 
 	Ppar([~kick, ~snare, ~hat, ~hatOpen, ~guitar], inf).play;
+
+
+
+	// 0.exit;
 
 }
 )
