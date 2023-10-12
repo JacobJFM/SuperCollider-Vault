@@ -33,7 +33,8 @@ SynthDef(\playBuf,
 }
 	).add;
 
-//	Synth(\playBuf, [\buffer, b[2]]); // uncomment and use this line to hear indiviual sounds stored in buffers.
+
+	// Synth(\playBuf, [\buffer, b[2]]); // uncomment and use this line to hear indiviual sounds stored in buffers.
 
 	// ~p = [\k, \r, \h, \r, \s, \r, \h, \r]; // 1D drum pattern
 	// ~p = [\k, \h, \r, \h, \s, \r, \h, \h]; // 1D drum pattern
@@ -42,6 +43,13 @@ SynthDef(\playBuf,
 	// ~p = [\guitar];
 	// ~p = ~p.reverse;
 
+
+
+	/* WHAT I NEED INSTEAD OF ABOVE
+	The code is structured to take the arrays above, which each have the specification of the patter, and for each index of the pattern above, add something to the corresponding list below. What I need to do is have multiple pattern arrays, one for each sample. Go from there.
+
+
+	*/
 /* // THIS WILL NOT WORK WITHOUT THE ~invFunc FUNCTION -- YOU HAVE TO MAKE THAT ;)
 ~invInts = ~invFunc.([0,-3,-2,-3,1,-3,-2,-3]);
 ~beat = List[];
@@ -53,7 +61,7 @@ SynthDef(\playBuf,
 ~s = List[]; // list for the snare drum
 ~h = List[]; // list for the hi-hat
 ~hH = List[]; // list for the other hi-hat
-~guitar = List[];
+~guit = List[];
 
 // create separate "parts" for each drum. Fills the array with short values where the symbol is present in the original beat, and with Rests where there are no symbols.
 ~p.size.do {|i|
@@ -61,7 +69,7 @@ SynthDef(\playBuf,
 	if (~p[i] == \s, {~s.add(0.25)}, {~s.add(Rest(0.25))});
 	if (~p[i] == \h, {~h.add(0.25)}, {~h.add(Rest(0.25))});
 	if (~p[i] == \hH, {~hH.add(0.25)}, {~hH.add(Rest(0.25))});
-	if (~p[i] == \guitar, {~guitar.add(0.25)}, {~guitar.add(Rest(0.25))});
+	if (~p[i] == \guitar, {~guit.add(0.25)}, {~guit.add(Rest(0.25))});
 };
 
 
@@ -81,7 +89,7 @@ SynthDef(\playBuf,
 ~s.postln;
 ~h.postln;
 ~hH.postln;
-~guitar.postln;
+~guit.postln;
 
 s.sync; // the sync statement causes the below to wait until all asynchronous stuff above has completed.
 
@@ -89,7 +97,7 @@ s.sync; // the sync statement causes the below to wait until all asynchronous st
 	~snare = Pbind(\instrument, \playBuf, \dur, Pseq(~s, inf), \buffer, b[1], \amp, 1.0);
 	~hat = Pbind(\instrument, \playBuf, \dur, Pseq(~h, inf), \buffer, b[2], \amp, 0.55);
 	~hatOpen = Pbind(\instrument, \playBuf, \dur, Pseq(~hH, inf), \buffer, b[3], \amp, 0.35);
-	~guitar = Pbind(\instrument, \playBuf, \dur, Pseq(~guitar, inf), \buffer, b[4], \amp, 1.0);
+	~guitar = Pbind(\instrument, \playBuf, \dur, Pseq(~guit, inf), \buffer, b[4], \amp, 1.0);
 
 // Here your simple, yet lit beat
 
