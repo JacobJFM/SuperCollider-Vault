@@ -33,63 +33,14 @@ SynthDef(\playBuf,
 }
 	).add;
 
+//
 
-	// Synth(\playBuf, [\buffer, b[2]]); // uncomment and use this line to hear indiviual sounds stored in buffers.
+~k = Array.newClear(16); // array for the kick drum
+~s = Array.newClear(16); // array for the snare drum
+~h = Array.newClear(16); // array for the hi-hat
+~hH = Array.newClear(16); // array for the other hi-hat
+~guit = Array.newClear(16);
 
-	// ~p = [\k, \r, \h, \r, \s, \r, \h, \r]; // 1D drum pattern
-	// ~p = [\k, \h, \r, \h, \s, \r, \h, \h]; // 1D drum pattern
-	// ~p = [\k, \h, \hH, \h, \s, \h, \hH, \h]; // 1D drum pattern
-	~p = [\h, Rest(), Rest(), \h, Rest(), Rest(), \h, Rest()]; //drill pattern
-	// ~p = [\guitar];
-	// ~p = ~p.reverse;
-
-
-
-	/* WHAT I NEED INSTEAD OF ABOVE
-	The code is structured to take the arrays above, which each have the specification of the patter, and for each index of the pattern above, add something to the corresponding list below. What I need to do is have multiple pattern arrays, one for each sample. Go from there.
-
-
-	*/
-/* // THIS WILL NOT WORK WITHOUT THE ~invFunc FUNCTION -- YOU HAVE TO MAKE THAT ;)
-~invInts = ~invFunc.([0,-3,-2,-3,1,-3,-2,-3]);
-~beat = List[];
-~p.size.do {|i| ~beat.add(~kit.wrapAt(~start + ~invInts[i]))};
-~p = ~beat.copy;
-*/
-
-~k = List[]; // list for the kick drum
-~s = List[]; // list for the snare drum
-~h = List[]; // list for the hi-hat
-~hH = List[]; // list for the other hi-hat
-~guit = List[];
-
-// create separate "parts" for each drum. Fills the array with short values where the symbol is present in the original beat, and with Rests where there are no symbols.
-~p.size.do {|i|
-	if (~p[i] == \k, {~k.add(0.25)}, {~k.add(Rest(0.25))});
-	if (~p[i] == \s, {~s.add(0.25)}, {~s.add(Rest(0.25))});
-	if (~p[i] == \h, {~h.add(0.25)}, {~h.add(Rest(0.25))});
-	if (~p[i] == \hH, {~hH.add(0.25)}, {~hH.add(Rest(0.25))});
-	if (~p[i] == \guitar, {~guit.add(0.25)}, {~guit.add(Rest(0.25))});
-};
-
-
-
-
-
-
-
-
-
-
-	// testing testing 123
-
-
-// see them all
-~k.postln; // the kick line -- feed to \kick
-~s.postln;
-~h.postln;
-~hH.postln;
-~guit.postln;
 
 s.sync; // the sync statement causes the below to wait until all asynchronous stuff above has completed.
 
