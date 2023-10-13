@@ -56,7 +56,25 @@ s.sync; // the sync statement causes the below to wait until all asynchronous st
 
 
 
+
 	// 0.exit;
 
 }
+)
+
+
+
+(
+w = Window("Experiment", Rect(200,200,600,300));
+~butt_kick = View(w, Rect(0, 0, ))
+
+b = Button(w, Rect(20, 20, 20, 20)).states_([
+	["", Color.red, Color.white],
+	["", Color.red, Color.blue]
+])
+.action_({ arg butt;
+	butt.value.postln;
+});
+
+w.front;
 )
