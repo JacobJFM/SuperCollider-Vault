@@ -33,24 +33,28 @@ SynthDef(\playBuf,
 }
 	).add;
 
-//
+// create arrays for each sample. Fill each with rests, which will be replaced with a single play of the sample
 
-~k = Array.newClear(16); // array for the kick drum
-~s = Array.newClear(16); // array for the snare drum
-~h = Array.newClear(16); // array for the hi-hat
-~hH = Array.newClear(16); // array for the other hi-hat
-~guit = Array.newClear(16);
+	~k = Array.fill(16, Rest()); // array for the kick drum
+~s = Array.fill(16, Rest()); // array for the snare drum
+~h = Array.fill(16, Rest()); // array for the hi-hat
+~hH = Array.fill(16, Rest()); // array for the other hi-hat
+~guit = Array.fill(16, Rest());
+
+
+
 
 
 s.sync; // the sync statement causes the below to wait until all asynchronous stuff above has completed.
 
+	// create Pbinds for each sample
 	~kick = Pbind(\instrument, \playBuf, \dur, Pseq(~k, inf), \buffer, b[0], \amp, 1.0);
 	~snare = Pbind(\instrument, \playBuf, \dur, Pseq(~s, inf), \buffer, b[1], \amp, 1.0);
 	~hat = Pbind(\instrument, \playBuf, \dur, Pseq(~h, inf), \buffer, b[2], \amp, 0.55);
 	~hatOpen = Pbind(\instrument, \playBuf, \dur, Pseq(~hH, inf), \buffer, b[3], \amp, 0.35);
-	~guitar = Pbind(\instrument, \playBuf, \dur, Pseq(~guit, inf), \buffer, b[4], \amp, 1.0);
+	~guitar = Pbind(\instrument, \playBuf, \dur, Pseq(~guit, inf), \buffer, b[4], \amp, 0.40);
 
-// Here your simple, yet lit beat
+// Play each Pbind in parallel
 
 	Ppar([~kick, ~snare, ~hat, ~hatOpen, ~guitar], inf).play;
 
@@ -71,10 +75,13 @@ w = Window("Experiment", Rect(200,200,600,300));
 b = Button(w, Rect(20, 20, 20, 20)).states_([
 	["", Color.red, Color.white],
 	["", Color.red, Color.blue]
-])
-.action_({ arg butt;
+]).action_({ arg butt;
 	butt.value.postln;
 });
 
+~butt_kick.add
+
 w.front;
 )
+
+Array.with(7, 'eight',  9).postln;
