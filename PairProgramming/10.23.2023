@@ -1,0 +1,79 @@
+/*
+
+431/531 Class 15/16: In Class Coding
+
+
+Today we begin work on HW 5. But instead of diving right into planning we will begin with some technical prompts designed to make you facile with Events as Object Prototypes. You will need to reference the help files for the following classes:
+
+Environment
+Event
+IdentityDictionary
+
+Using the below questions/prompts, answer using value SC3 code. When errors or unexpected results occur, use the documentation to figure out the problem.
+
+*/
+
+/* Questions/Prompts */
+
+//-- 1. Event inherits from Environment and IdentityDictionary. How can you see all superclasses? (Write code)
+(
+var currentClass, superclassList;
+currentClass = Event;
+superclassList = [];
+
+while { currentClass.notNil } {
+    superclassList = superclassList.add(currentClass.superclass);
+    currentClass = currentClass.superclass;
+};
+
+superclassList.removeAt(superclassList.size - 1);
+superclassList.postln;
+)
+
+
+
+//-- 2. What are the practical effects of this inheritance? (Write your answer, perhaps coming back after completing the below questions/tasks.)
+
+/* YOUR WRITTEN ANSWER HERE */
+
+//-- 3. How do you create an Event?
+
+// The constructor is declared as follows:
+Event.new(n: 8, proto, parent, know: true)
+// an example use case:
+~myEvent = Event(6); //
+
+
+
+//-- 4. Add a key with a value after the event has been created. Test. Print.
+
+
+//-- 5. Add a function to your Event and pass two arguments that are added together and returned. Test. Print.
+
+
+//-- 6. Rewrite the function to store the results of the addition in an internal key. Test. Print.
+
+
+//-- 7. Grok the following edited code from IdentityDictionary documentation.
+
+x = (freq: 30);
+x.class;
+a = (amp: 1).parent_(x);
+a.parent;
+a.freq; // returns 30
+a.proto_((freq: 20));
+a.at(\freq); // returns 20
+y = (i: -1);
+a.parent = (y);
+a.i; // returns -1
+a.cs;
+
+
+//-- 8. Now do you understand why we hear something when we run the following code? Write your answer below.
+
+d = ();
+d.play;
+
+/* YOUR WRITTEN COMMENT HERE */
+
+//-- 9. How can you "see" all of the default keys from the parent?
