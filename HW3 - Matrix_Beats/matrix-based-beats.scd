@@ -78,17 +78,6 @@ SynthDef(\playBuf,
 };
 
 
-
-
-
-
-
-
-
-
-	// testing testing 123
-
-
 // see them all
 ~k.postln; // the kick line -- feed to \kick
 ~s.postln;
