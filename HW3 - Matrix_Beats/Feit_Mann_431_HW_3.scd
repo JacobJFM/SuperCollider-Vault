@@ -5,14 +5,41 @@
 / /_/ / __/ / /  / /  / /_/ /  __/ /_/ / /_    ___/ /  __/ /_/ / /_/ /  __/ / / / /__/  __/ /
 \____/_/   /_/  /_/  /_____/\___/\__,_/\__/   /____/\___/\__, /\__,_/\___/_/ /_/\___/\___/_/
                                                            /_/
-// sometimes need to evaluate this to disable inputs so the server can run
-// s.options.numInputBusChannels = 0;
 
+
+
+*** OVERVIEW ***
+
+- measures are divided into 16th notes
+
+- user input determines:
+-- global tempo
+-- pattern for each sample
+
+- instructions for user input are given in USER INPUT SECTION
+
+- for each parameter, default values will be used if user input is not specified
 
 */
 (
 
 s.waitForBoot {
+
+
+	// *** USER INPUT SECTION ***
+
+	// Input time in beats per minute
+	var tempo = 120;
+
+	/*
+	Each sample is given an array of size 16 corresponding to the 16th notes of each measure.
+	For each point in time at which you would like a sample to trigger, replace the corresponding '0' with a '1'.
+	e.g. if you would like the snare sample to trigger on the 3rd 1/4 note, AKA the 9th 1/8th note,
+	replace the '0' at snare_pattern[8] with a '1'.
+	*/
+
+	var kick_pattern = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
 
 	t = TempoClock.default; // the default clock
 	t.tempo = 160/60; // beats per second
