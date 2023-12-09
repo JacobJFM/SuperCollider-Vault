@@ -1,11 +1,6 @@
 /*
 
-       __________  ___   ____             __     _____
-      / / ____/  |/  /  / __ )___  ____ _/ /_   / ___/___  ____ ___  _____  ____  ________  _____
- __  / / /_  / /|_/ /  / __  / _ \/ __ `/ __/   \__ \/ _ \/ __ `/ / / / _ \/ __ \/ ___/ _ \/ ___/
-/ /_/ / __/ / /  / /  / /_/ /  __/ /_/ / /_    ___/ /  __/ /_/ / /_/ /  __/ / / / /__/  __/ /
-\____/_/   /_/  /_/  /_____/\___/\__,_/\__/   /____/\___/\__, /\__,_/\___/_/ /_/\___/\___/_/
-                                                           /_/
+JACOB'S BEAT SEQUENCER
 
 *** OVERVIEW ***
 
@@ -23,53 +18,66 @@
 (
 
 s.waitForBoot {
-
+	// -----------------------------------------------------------------------------------------------------------------------
 	/*
 	*** USER INPUT SECTION ***
-	Basic Instructions: For each input section, the first variable is a bool that determines whether to read values inputted by the user or to use the default values.
-	For each input you would like to specify, change the corresponding bool from 'False' to 'True'.
+
+	Basic Instructions:
+
+	For each input section, the first key, 'enabled', corresponds to a boolean that determines whether to read values inputted by the user or to use the default values.
+	For each input you would like to specify, change the bool from 'False' to 'True'.
 	e.g. If you want to replace the default tempo with one of your choosing, first change the value of 'tempo_given' from 'False' to 'True'.
+
+	The idea here is that if you want to quickly revert to default values,
+	you can just change the boolean to 'False' instead of having to remember what the original values were.
+
+	The 'input' key corresponds to the values you'd like to set for each field.
+
+	The 'default' key corresponds to values that will be used if 'enabled' is set to 'False'.
+	The intention is for the user to only mess with the 'input' values, though I suppose one could also treat this as
+	a quick way to perform A-B tests, by editing both values and using the 'enabled' flag to switch between them.
+
 	*/
 
 
 	// Tempo in beats per minute
-	var tempo_given = False;
-	var tempo = 120;
+	var tempo = IdentityDictionary(enabled: False, input: 120, default: 120);
 
 	/*
 	Each sample is given an array of size 16 corresponding to the 16th notes of each measure.
 	For each point in time at which you would like a sample to trigger, replace the corresponding '0' with a '1'.
 	e.g. if you would like the snare sample to trigger on the 3rd 1/4 note, AKA the 9th 1/8th note,
 	replace the '0' at snare_pattern[8] with a '1'.
-
-	By default, you must enable user input for each sample by changing the corresponding bool from 'False' to 'True'.
-	However, if you would like to give input for all of the samples, you can leave the bools for the individual patterns alone,
-	and simply change the value of 'all_patterns_given' to 'True'.
-	This will override any bools for individual samples/patterns that read 'False'.
 	*/
-	var all_patterns_given = False;
-
-	var kick_given = False;
-	var kick_pattern = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-	var snare_given = False;
-	var snare_pattern = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-	var hat1_given = False;
-	var hat1_pattern = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
-	var hat2_given = False;
-	var hat2_pattern = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-
+	var kick = IdentityDictionary(
+		enabled: False,
+		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		default: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
+	);
+	var snare = IdentityDictionary(
+		enabled: False,
+		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		default: [0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0]
+	);
+	var hat1 = IdentityDictionary(
+		enabled: False,
+		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		default: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+	);
+	var hat2 = IdentityDictionary(
+		enabled: False,
+		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		default: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
+	);
 
 	// *** END OF USER INPUT SECTION ***
-
+	// -----------------------------------------------------------------------------------------------------------------------
 
 	// set tempo
 	t = TempoClock.default; // the default clock
-	if(tempo_given) {
-		t.tempo = tempo/60; } {
-		t.tempo = 120/60; }
+	if(tempo[\enabled]) {
+		t.tempo = tempo[\input]/60; } {
+		t.tempo = tempo[\default]/60; }
 
 	// load files from subdirectory labeled "samples"
 	b = [\kick, \sd, \hh1, \hh2].collect{|val| Buffer.read(s,("samples/"++val++".wav").resolveRelative) };
@@ -84,44 +92,29 @@ s.waitForBoot {
 		}
 	).add;
 
-	/*	// create arrays for each sample. Fill each with rests, which will be replaced with a single play of the sample
-
-	~k = Array.fill(16, {Rest(0.25)}); // array for the kick drum
-	~s = Array.fill(16, {Rest(0.25)}); // array for the snare drum
-	~h1 = Array.fill(16, {Rest(0.25)}); // array for hi-hat 1
-	~h2 = Array.fill(16, {Rest(0.25)}); // array for hi-hat 2
-	*/
-
-
-	// set patterns
-
-	// place all patterns in an array to be looped through more easily
-	~allPatterns = [kick_pattern, snare_pattern, hat1_pattern, hat2_pattern];
-
-	if(all_patterns_given) {
-		for(0, ~allPatterns.size)
-
-
-
-		s.sync; // the sync statement causes the below to wait until all asynchronous stuff above has completed.
-
-		// create Pbinds for each sample
-		~kick = Pbind(\instrument, \playBuf, \dur, Pseq(~k, inf), \buffer, b[0], \amp, 1.0);
-		~snare = Pbind(\instrument, \playBuf, \dur, Pseq(~s, inf), \buffer, b[1], \amp, 1.0);
-		~hat1 = Pbind(\instrument, \playBuf, \dur, Pseq(~h1, inf), \buffer, b[2], \amp, 0.55);
-		~hat2 = Pbind(\instrument, \playBuf, \dur, Pseq(~h2, inf), \buffer, b[3], \amp, 0.35);
-		~guitar = Pbind(\instrument, \playBuf, \dur, Pseq(~guit, inf), \buffer, b[4], \amp, 0.20);
-
-
-
-		// Play each Pbind in parallel
-
-		Ppar([~kick, ~snare, ~hat1, ~hat2, ~guitar], inf).play;
-
-
-
-
-		// 0.exit;
-
+	// create sequences of play and rests for each sample
+	~sampleDicts = [kick, snare, hat1, hat2];
+	~sampleDicts.do {
+		|dict|
+		var data = dict[\enabled] ? dict[\input] : dict[\default];
+		dict.put(\sequence,
+			data.collect { |step|
+				step == 1 ? 0.25 : Rest(0.25);
+		});
 	}
-)
+
+
+	s.sync; // the sync statement causes the below to wait until all asynchronous stuff above has completed.
+
+	// create Pbinds for each sample
+	~kickBind = Pbind(\instrument, \playBuf, \dur, Pseq(kick[\sequence], inf), \buffer, b[0], \amp, 1.0);
+	~snareBind = Pbind(\instrument, \playBuf, \dur, Pseq(snare[\sequence], inf), \buffer, b[1], \amp, 1.0);
+	~hat1Bind = Pbind(\instrument, \playBuf, \dur, Pseq(hat1[\sequence], inf), \buffer, b[2], \amp, 0.55);
+	~hat2Bind = Pbind(\instrument, \playBuf, \dur, Pseq(hat2[\sequence], inf), \buffer, b[3], \amp, 0.35);
+
+	// play each Pbind in parallel
+	Ppar([~kickBind, ~snareBind, ~hat1Bind, ~hat2Bind], inf).play;
+
+	0.exit;
+
+}
