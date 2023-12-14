@@ -1,28 +1,18 @@
 /*
 
-JACOB'S BEAT SEQUENCER
+SIMPLE BEAT SEQUENCER
 
 *** OVERVIEW ***
 
 - measures are divided into 16th notes
-
-- user input determines:
--- global tempo
--- pattern for each sample
-
 - instructions for user input are given in USER INPUT SECTION
-
-- for each parameter, default values will be used if user input is not specified
-
-
-
 
 */
 (
 
 s.waitForBoot {
 	// -----------------------------------------------------------------------------------------------------------------------
-	/*
+/*
 	*** USER INPUT SECTION ***
 
 	Basic Instructions:
@@ -41,22 +31,33 @@ s.waitForBoot {
 	The intention is for the user to only mess with the 'input' values, though I suppose one could also treat this as
 	a quick way to perform A-B tests, by editing both values and using the 'enabled' flag to switch between them.
 
-	*/
+*/
 
 
-	// Number of measures to play
-	~measures = (enabled: false, input: 8, default: 8);
+/*	Measures and Transformations
+	The length of the array used (either input or defaul) determines the number of measures that will play.
+	The array you use can be as long as you like or as short as 1 element long.
+*/
+
+	~measures = (enabled: false,
+		input: [0, 0, 0, 0],
+		default: [0, 1, 2, 3, 0, 2, 2, 1]
+	);
 
 
 	// Tempo in beats per minute
-	~tempo = (enabled: true, input: 80, default: 120);
+	~tempo = (enabled: true,
+		input: 80,
+		default: 120
+	);
 
-	/*
+/*
 	Each sample is given an array of size 16 corresponding to the 16th notes of each measure.
 	For each point in time at which you would like a sample to trigger, replace the corresponding '0' with a '1'.
 	e.g. if you would like the snare sample to trigger on the 3rd 1/4 note, AKA the 9th 1/8th note,
 	replace the '0' at snare_pattern[8] with a '1'.
-	*/
+*/
+
 	~kick = (
 		enabled: false,
 		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -136,6 +137,8 @@ s.waitForBoot {
 
 	// play each Pbind in parallel
 	Ppar([~kickBind, ~snareBind, ~hat1Bind, ~hat2Bind, ~rimBind], ~numMeasures).play;
+
+
 
 	// 0.exit;
 
