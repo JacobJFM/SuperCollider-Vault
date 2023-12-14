@@ -37,18 +37,25 @@ s.waitForBoot {
 /*	Measures and Transformations
 	The length of the array used (either input or defaul) determines the number of measures that will play.
 	The array you use can be as long as you like or as short as 1 element long.
+	Each symbol corresponds to a different transformation.
+
+	Each element is an array so optional arguments can be provided for the shift and permute transformations. Both take integers.
+	By default, the shift transformation will shift by 1.
+	By default, the permute transformation will be selected randomly.
+
+	\f = forwards, \b = backwards, \s = shift, \p = random permutation
 */
 
 	~measures = (enabled: false,
-		input: [0, 0, 0, 0],
-		default: [0, 1, 2, 3, 0, 2, 2, 1]
+		input: [[\f], [\f], [\f], [\f]],
+		default: [[\f], [\f], [\s], [\p], [\f], [\s, 3], [\b], [\b]]
 	);
 
 
 	// Tempo in beats per minute
-	~tempo = (enabled: true,
-		input: 80,
-		default: 120
+	~tempo = (enabled: false,
+		input: 120,
+		default: 80
 	);
 
 /*
@@ -84,6 +91,13 @@ s.waitForBoot {
 		default: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1]
 	);
 
+
+	~harp = (
+		enabled: false,
+		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+		default: [4, 2, 0, 2, 4, 4, 4, nil, 2, 2, 2, nil, 4, 7, 7, nil]
+	);
+
 	// *** END OF USER INPUT SECTION ***
 	// -----------------------------------------------------------------------------------------------------------------------
 
@@ -95,50 +109,73 @@ s.waitForBoot {
 	t.tempo = ~newTempo;
 
 	// load files from subdirectory labeled "samples"
-	b = [\kick, \sd, \hh1, \hh2, \rim].collect{|val| Buffer.read(s,("samples/"++val++".wav").resolveRelative) };
+	b = [\kick, \sd, \hh1, \hh2, \rim, \harp].collect{|val| Buffer.read(s,("samples/"++val++".wav").resolveRelative) };
 
 
 	// a very simple sample-playing instrument (as given in starter code)
 	SynthDef(\playBuf,
-		{ |buffer, start = 0, dur = 0.25, amp = 1|
-			var sig = PlayBuf.ar(1,buffer,startPos: start, loop: 0);
+		{ |buffer, newRate = 1.0, start = 0, dur = 0.25, amp = 1|
+			var sig = PlayBuf.ar(numChannels: 1, bufnum: buffer, rate: newRate, startPos: start, loop: 0);
 			var env = EnvGen.kr(Env.linen(0.01,dur,0.01,level:amp),doneAction:2);
 			Out.ar(0,(sig*env) !2);
 		}
 	).add;
 
-	// create sequences of play and rests for each sample
-	~sampleDicts = [~kick, ~snare, ~hat1, ~hat2, ~rim];
-	~sampleDicts.do {
+
+	// array for all dicts
+	~drumDicts = [~kick, ~snare, ~hat1, ~hat2, ~rim];
+
+
+	// manage measures input/default
+	if(~measures[\enabled]) {
+		~transforms = ~measures[\input]; } {
+		~transforms = ~measures[\default]; };
+
+	~drumDicts.do {
 		|dict|
-		var data;
+		var data, fullData = List.new();
 		if(dict[\enabled] == true) {
 			data = dict[\input] } {
 			data = dict[\default] };
-		dict.put(\sequence,
-			data.collect { |step|
-				if(step == 1) {0.25} {Rest(0.25)};
-		});
+		~transforms.do
+		{
+			|arr, fullData|
+			var trn = arr[0], modNum;
+			switch(trn)
+			{ \f } { fullData.addAll(data); } // forwards
+			{ \b } { fullData.addAll(data.reverse); } // backwards
+			{ \s } {
+				if(arr.size > 1) { modNum = arr[1] } { modNum = 1 };
+				fullData.addAll(data.rotate(modNum)); } // shift
+			{ \p } {
+				if(arr.size > 1) { modNum = arr[1] } { modNum = data.size.rand };
+				fullData.addAll(data.permute(modNum)); } // permutation
+			{ fullData.addAll(data); "invalid transform input, defaulting to forward".postln }; // default (forwards)
+			dict.put(\sequence, fullData.collect {
+				|item|
+				if(item == 1)
+				{ 0.25 }
+				{ Rest(0.25) }
+			} );
+		};
 	};
 
-	// determine number of measures
-	if(~measures[\enabled]) {
-		~numMeasures = ~measures[\input]; } {
-		~numMeasures = ~measures[\default]; };
 
 	s.sync; // the sync statement causes the below to wait until all asynchronous stuff above has completed.
 
-	// create Pbinds for each sample
-	~kickBind = Pbind(\instrument, \playBuf, \dur, Pseq(~kick[\sequence], 1), \buffer, b[0], \amp, 1.0);
-	~snareBind = Pbind(\instrument, \playBuf, \dur, Pseq(~snare[\sequence], 1), \buffer, b[1], \amp, 1.0);
-	~hat1Bind = Pbind(\instrument, \playBuf, \dur, Pseq(~hat1[\sequence], 1), \buffer, b[2], \amp, 0.55);
-	~hat2Bind = Pbind(\instrument, \playBuf, \dur, Pseq(~hat2[\sequence], 1), \buffer, b[3], \amp, 0.20);
-	~rimBind = Pbind(\instrument, \playBuf, \dur, Pseq(~rim[\sequence], 1), \buffer, b[4], \amp, 0.60);
+	// create Pbinds for each drum sample
+	~kickBind = Pbind(\instrument, \playBuf, \dur, Pseq(~kick[\sequence]), \buffer, b[0], \amp, 1.0);
+	~snareBind = Pbind(\instrument, \playBuf, \dur, Pseq(~snare[\sequence]), \buffer, b[1], \amp, 1.0);
+	~hat1Bind = Pbind(\instrument, \playBuf, \dur, Pseq(~hat1[\sequence]), \buffer, b[2], \amp, 0.55);
+	~hat2Bind = Pbind(\instrument, \playBuf, \dur, Pseq(~hat2[\sequence]), \buffer, b[3], \amp, 0.20);
+	~rimBind = Pbind(\instrument, \playBuf, \dur, Pseq(~rim[\sequence]), \buffer, b[4], \amp, 0.60);
+
+	~harpBind = Pbind(\instrument, \playBuf, \dur, Pseq(~hat1[\sequence]), \buffer, b[5], \newRate, 1.0, \amp, 0.60);
+
+
 
 	// play each Pbind in parallel
-	Ppar([~kickBind, ~snareBind, ~hat1Bind, ~hat2Bind, ~rimBind], ~numMeasures).play;
-
-
+	Ppar([~kickBind, ~snareBind, ~hat1Bind, ~hat2Bind, ~rimBind]).play;
 
 	// 0.exit;
 
