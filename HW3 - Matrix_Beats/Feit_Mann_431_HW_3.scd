@@ -91,13 +91,6 @@ s.waitForBoot {
 		default: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1]
 	);
 
-
-	~harp = (
-		enabled: false,
-		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-		default: [4, 2, 0, 2, 4, 4, 4, nil, 2, 2, 2, nil, 4, 7, 7, nil]
-	);
-
 	// *** END OF USER INPUT SECTION ***
 	// -----------------------------------------------------------------------------------------------------------------------
 
@@ -109,13 +102,13 @@ s.waitForBoot {
 	t.tempo = ~newTempo;
 
 	// load files from subdirectory labeled "samples"
-	b = [\kick, \sd, \hh1, \hh2, \rim, \harp].collect{|val| Buffer.read(s,("samples/"++val++".wav").resolveRelative) };
+	b = [\kick, \sd, \hh1, \hh2, \rim].collect{|val| Buffer.read(s,("samples/"++val++".wav").resolveRelative) };
 
 
 	// a very simple sample-playing instrument (as given in starter code)
 	SynthDef(\playBuf,
-		{ |buffer, newRate = 1.0, start = 0, dur = 0.25, amp = 1|
-			var sig = PlayBuf.ar(numChannels: 1, bufnum: buffer, rate: newRate, startPos: start, loop: 0);
+		{ |buffer, start = 0, dur = 0.25, amp = 1|
+			var sig = PlayBuf.ar(numChannels: 1, bufnum: buffer, rate: 1.0, startPos: start, loop: 0);
 			var env = EnvGen.kr(Env.linen(0.01,dur,0.01,level:amp),doneAction:2);
 			Out.ar(0,(sig*env) !2);
 		}
@@ -139,7 +132,7 @@ s.waitForBoot {
 			data = dict[\default] };
 		~transforms.do
 		{
-			|arr, fullData|
+			|arr|
 			var trn = arr[0], modNum;
 			switch(trn)
 			{ \f } { fullData.addAll(data); } // forwards
@@ -169,8 +162,6 @@ s.waitForBoot {
 	~hat1Bind = Pbind(\instrument, \playBuf, \dur, Pseq(~hat1[\sequence]), \buffer, b[2], \amp, 0.55);
 	~hat2Bind = Pbind(\instrument, \playBuf, \dur, Pseq(~hat2[\sequence]), \buffer, b[3], \amp, 0.20);
 	~rimBind = Pbind(\instrument, \playBuf, \dur, Pseq(~rim[\sequence]), \buffer, b[4], \amp, 0.60);
-
-	~harpBind = Pbind(\instrument, \playBuf, \dur, Pseq(~hat1[\sequence]), \buffer, b[5], \newRate, 1.0, \amp, 0.60);
 
 
 
