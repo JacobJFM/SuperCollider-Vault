@@ -3,6 +3,8 @@ s.waitForBoot{
 
 	var keys = [\C, \G, \D];
 	var currentState = \C;
+
+	all the data is stored as plain MIDI-related integers
 	var progressions = (
 		C: [
 			[[60, 64, 67], [65, 69, 72], [67, 71, 74], [60, 64, 67]], // I-IV-V-I / C,F,G,C
@@ -43,7 +45,7 @@ s.waitForBoot{
 		)
 	);
 
-	var chordsList = List.new();
+	var chordsList = List.new(); // will eventually hold all the chords that get added by the user
 
 	var mealy = (
 		generate: {
@@ -69,7 +71,7 @@ s.waitForBoot{
 		}
 	);
 
-	var isPlaying = false;
+	var isPlaying = false; // flag that slightly helps prevent some buggy server behavior if the play button is pressed too fast. Honestly it's still not ideal as the post window shows some alarming things but the audio sounds ok.
 
 	// initialize list to avoid empty list error in Pseq later on
 	chordsList.add(Rest());
@@ -106,21 +108,25 @@ s.waitForBoot{
 
 
 
+	// GUI
 	{
 		var window, keyButtons, addButton, actionsList, currentStateDisplay, overlay, disableOverlay, overlayMessage, initKeyButtons;
 		var lastAction, lastKey, addActionToList, actionButtons, playButton;
 		var left, top, width, height;
 		var indigo, orange, green;
 
+		// bounds of the window
 		left = (Window.screenBounds.width / 2) - 200;
 		top = (Window.screenBounds.height / 2) - 200;
 		width = 400;
 		height = 350;
 
+		// these are to keep track of which progression/pathway the user is trying to add to the list
 		actionsList = List.new;
 		lastAction = nil;
 		lastKey = nil;
 
+		// it's a cool font and the GUI looks nicer with it but I believe nothing breaks if you don't have it
 		Font.default = Font("Eurostile Extd", 14, true);
 		indigo = Color.new255(29, 23, 207);
 		orange = Color.new255(255, 153, 102, 230);
@@ -136,7 +142,7 @@ s.waitForBoot{
 			Button(window, Rect(30, 30 + (i * 50), (width/2) - 40, height/8))
 			.states_([
 				[action, Color.black, Color.white],
-				[action, Color.white, orange]])
+				[action, Color.white, orange]]) // allows the user to see which action they've selected
 			.action_({
 				|button|
 				actionButtons.do(~resetButtonStates);
@@ -150,7 +156,7 @@ s.waitForBoot{
 			Button(window, Rect((width/2) + 10, 30 + (i * 50), (width/2) - 40, height/8))
 			.states_([
 				[key, Color.black, Color.white],
-				[key, Color.white, orange]])
+				[key, Color.white, orange]]) // allows the user to see which key they've selected
 			.action_({
 				|button|
 				keyButtons.do(~resetButtonStates);
@@ -165,17 +171,17 @@ s.waitForBoot{
 			button.value = 0;
 		};
 
-		// display current state
+		// display current state / key
 		currentStateDisplay = StaticText(window, Rect(30, height - 30, 380, 20))
 		.stringColor_(Color.white)
-		.string_("Current State: " ++ currentState);
+		.string_("Current Key: " ++ currentState);
 		~updateCurrentState = { |newState|
 			currentState = newState;
 			currentStateDisplay.string = "Current State: " ++ currentState.asString;
 		};
 
 
-		// add button
+		// "Add" button
 		addButton = Button(window, Rect(30, 200, width - 60, 40))
 		.states_([["Add"]])
 		.action_(
@@ -207,7 +213,7 @@ s.waitForBoot{
 			if(isPlaying)
 			{ s.defaultGroup.freeAll;
 				isPlaying = false;
-				Routine({
+				Routine({ // my attempt to stop the audio from sounding too harsh if the button is pressed while it is still playing
 					0.1.wait;
 					~bigProg.play;
 					isPlaying = true;
@@ -216,19 +222,20 @@ s.waitForBoot{
 				isPlaying = true; };
 		});
 
+
+		// overlay to allow user to select initial key
 		overlay = UserView(window, Rect(0, 0, width, height))
 		.background_(orange);
-
 		overlayMessage = StaticText(overlay, Rect(100, 100, 200, 20))
 		.stringColor_(indigo)
 		.string_("Choose a key to start")
 		.align_(\center);
-
+		// closes the overlay when an option is picked
 		disableOverlay = {
 			overlay.visible = false;
 			overlay.enabled = false;
 		};
-
+		// sets the initial key and also does some wonky stuff to initialize chordsList properly
 		initKeyButtons = [\C, \G, \D].collect { |key, i|
 			Button(overlay, Rect(150, 130 + (i * 30), 100, 20))
 			.states_([[key]])
@@ -243,7 +250,7 @@ s.waitForBoot{
 		window.front;
 	}.value;
 
-
+	// the main event
 	~bigProg = Pbind(
 		\instrument, \Piano_rhodeySC,
 		\legato, Pseq([0.9, 0.5, 0.5, 0.9, 0.9, 0.9, 0.9, 0.5, 1, 0.5, 1, 0.6, 0.3], inf),
