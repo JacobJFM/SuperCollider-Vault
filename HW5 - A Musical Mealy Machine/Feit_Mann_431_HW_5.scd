@@ -4,7 +4,7 @@ s.waitForBoot{
 	var keys = [\C, \G, \D];
 	var currentState = \C;
 
-	all the data is stored as plain MIDI-related integers
+	// all the data is stored as plain MIDI-related integers
 	var progressions = (
 		C: [
 			[[60, 64, 67], [65, 69, 72], [67, 71, 74], [60, 64, 67]], // I-IV-V-I / C,F,G,C
@@ -127,7 +127,7 @@ s.waitForBoot{
 		lastKey = nil;
 
 		// it's a cool font and the GUI looks nicer with it but I believe nothing breaks if you don't have it
-		Font.default = Font("Eurostile Extd", 14, true);
+		Font.default = Font("Eurostile Extd", 14);
 		indigo = Color.new255(29, 23, 207);
 		orange = Color.new255(255, 153, 102, 230);
 		green = Color.new255(91, 171, 119);
