@@ -66,26 +66,31 @@ s.waitForBoot {
 */
 
 	~kick = (
+		type: \drum,
 		enabled: false,
 		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		default: [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
 	);
 	~snare = (
+		type: \drum,
 		enabled: false,
 		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		default: [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
 	);
 	~hat1 = (
+		type: \drum,
 		enabled: false,
 		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		default: [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0]
 	);
 	~hat2 = (
+		type: \drum,
 		enabled: false,
 		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		default: [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0]
 	);
 	~rim = (
+		type: \drum,
 		enabled: false,
 		input: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		default: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1]
@@ -115,8 +120,8 @@ s.waitForBoot {
 	).add;
 
 
-	// array for all dicts
-	~drumDicts = [~kick, ~snare, ~hat1, ~hat2, ~rim];
+	// array for all samples
+	~sampleDicts = [~kick, ~snare, ~hat1, ~hat2, ~rim, ~harp];
 
 
 	// manage measures input/default
@@ -124,9 +129,9 @@ s.waitForBoot {
 		~transforms = ~measures[\input]; } {
 		~transforms = ~measures[\default]; };
 
-	~drumDicts.do {
+	~sampleDicts.do {
 		|dict|
-		var data, fullData = List.new();
+		var data, playData = List.new(), pitchData = List.new();
 		if(dict[\enabled] == true) {
 			data = dict[\input] } {
 			data = dict[\default] };
@@ -135,28 +140,27 @@ s.waitForBoot {
 			|arr|
 			var trn = arr[0], modNum;
 			switch(trn)
-			{ \f } { fullData.addAll(data); } // forwards
-			{ \b } { fullData.addAll(data.reverse); } // backwards
+			{ \f } { playData.addAll(data); } // forwards
+			{ \b } { playData.addAll(data.reverse); } // backwards
 			{ \s } {
 				if(arr.size > 1) { modNum = arr[1] } { modNum = 1 };
-				fullData.addAll(data.rotate(modNum)); } // shift
+				playData.addAll(data.rotate(modNum)); } // shift
 			{ \p } {
 				if(arr.size > 1) { modNum = arr[1] } { modNum = data.size.rand };
-				fullData.addAll(data.permute(modNum)); } // permutation
-			{ fullData.addAll(data); "invalid transform input, defaulting to forward".postln }; // default (forwards)
-			dict.put(\sequence, fullData.collect {
+				playData.addAll(data.permute(modNum)); } // permutation
+			{ playData.addAll(data); "invalid transform input, defaulting to forward".postln }; // default (forwards)
+			dict.put(\sequence, playData.collect {
 				|item|
-				if(item == 1)
+				if(item >= 1)
 				{ 0.25 }
 				{ Rest(0.25) }
 			} );
 		};
 	};
 
-
 	s.sync; // the sync statement causes the below to wait until all asynchronous stuff above has completed.
 
-	// create Pbinds for each drum sample
+	// create Pbinds for each sample
 	~kickBind = Pbind(\instrument, \playBuf, \dur, Pseq(~kick[\sequence]), \buffer, b[0], \amp, 1.0);
 	~snareBind = Pbind(\instrument, \playBuf, \dur, Pseq(~snare[\sequence]), \buffer, b[1], \amp, 1.0);
 	~hat1Bind = Pbind(\instrument, \playBuf, \dur, Pseq(~hat1[\sequence]), \buffer, b[2], \amp, 0.55);
