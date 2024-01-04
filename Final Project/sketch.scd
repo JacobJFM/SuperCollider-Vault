@@ -3,7 +3,8 @@
 Server.killAll;
 s.waitForBoot {
 
-	var chords = [
+	// dict of available chords
+	var chords = Dictionary.newFrom([
 		\major, { |root|
 			[root, root + 4, root + 7] },
 		\minor, { |root|
@@ -22,13 +23,72 @@ s.waitForBoot {
 			[root, root + 5, root + 7] },
 		\aug, { |root|
 			[root, root + 4, root + 8] },
-	];
+	]);
 
-	// d is our dict of available chords
-	d = Dictionary.newFrom(chords);
+	var arpTask;
+	~currentMode = \arpeggiate;
+	~arpMode = \upward;
 
-	// c is our current mode. It can be set equal to the symbol for any of our available modes.
-	c = \sus2;
+	// current chord - can be set equal to the symbol for any of our available chords.
+	~currentChord = \min7;
+	~alter = {
+		|mode, signal, val, chord, tempo = 170|
+		switch(mode)
+		{ \normal } {
+			chord.do({
+				|note|
+				if(signal == \on)
+				{ m.noteOn(0, note, val); }
+				{ m.noteOff(0, note); }
+		}) }
+		{ \arpeggiate } {
+			var noteIndex = 0;
+			var interval = 60/tempo;
+			var direction = 1;
+
+			// stop previous task if it's still running
+			if (arpTask.notNil) {
+				arpTask.stop();
+				chord.do { |note| m.noteOff(0, note); };
+			};
+
+			arpTask = Task({
+				loop {
+					if (signal == \on) {
+						if (noteIndex > 0) {
+							m.noteOff(0, chord[noteIndex - 1]);};
+						m.noteOn(0, chord[noteIndex], val);
+						switch(~arpMode)
+						{ \upward } {
+							noteIndex = (noteIndex + 1) % chord.size; }
+						{ \downward } {
+							noteIndex = (noteIndex - 1);
+							if (noteIndex < 0) { noteIndex = chord.size - 1; } }
+						{ \random } {
+							noteIndex = (chord.size).rand; }
+						{ \randomWalk } {
+							noteIndex = noteIndex + [-1, 1].choose;
+							if (noteIndex < 0) { noteIndex = 0; };
+							if (noteIndex >= chord.size) { noteIndex = chord.size - 1; }; }
+						{ \pingPong } {
+							if (noteIndex >= (chord.size -1)) {
+								direction = -1;
+							};
+							if (noteIndex <= 0) {
+								direction = 1;
+							};
+							noteIndex = (noteIndex + direction).clip(0, chord.size - 1); }
+						{ "no arp mode specified".postln; };
+					} {
+						// if signal == /off
+						chord.do({ |note| m.noteOff(0, note); });
+						arpTask.stop();
+					};
+					interval.wait; }
+			});
+			arpTask.play(); }
+		{ "no mode selected???".postln; };
+	};
 
 
 	// MIDI setup
@@ -40,25 +100,19 @@ s.waitForBoot {
 	MIDIIn.connect;
 
 	(
+
 		MIDIdef.noteOn(\noteOn, {
 			|val, num|
-			c.postln;
-			d[c].value(num).do({ // perform noteOn for each note in the chord
-				|noteNum|
-				noteNum.postln;
-				m.noteOn(0, noteNum, val);
-			});
+			~currentChord.postln;
+			~alter.value(~currentMode, \on, val, chords[~currentChord].value(num));
 		});
 
 		MIDIdef.noteOff(\noteOff, {
 			|val, num|
-			d[c].value(num).do({ // perform noteOff for each note in the chord
-				|noteNum|
-				m.noteOff(0, noteNum);
-			});
+			~currentChord.postln;
+			~alter.value(~currentMode, \off, val, chords[~currentChord].value(num));
 		});
 
 	);
-
 }
 )
