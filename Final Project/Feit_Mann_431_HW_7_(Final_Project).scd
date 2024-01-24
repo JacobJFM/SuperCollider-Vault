@@ -1,3 +1,28 @@
+/* USAGE:
+Due to the particularities of working with MIDI devices and with different operating systems,
+I found that dynamically adjusting to each situation was just out of my scope.
+Here's how to make this system work for you:
+
+WINDOWS:
+I built this on Windows, so honestly this is the only one I'm very confident in.
+1. download loopMIDI: https://www.tobias-erichsen.de/software/loopmidi.html
+2. evaluate this (it does get run automatically if you evaluate this entire file, but probably easier to just do it first): (
+ MIDIdef.freeAll;
+ MIDIClient.init;
+ MIDIClient.destinations;
+ )
+3. note whichever index in MIDI Destinations belongs to loopMIDI.
+ set ~midiOutput equal to that index. Mine is set to 3.
+
+MacOS:
+I did not have time to test this on a mac system, so I am not sure of all the steps you would need to take to adjust this program, but much of my code was based on this video which should explain it fairly well (this link will put you at the proper timestamp): https://youtu.be/ih2uqOaqb4c?si=fI4ITdRmVf48U3KW&t=81
+
+Linux:
+The documentation suggests that Linux systems are a whole nother beast with this stuff, so if possible I would suggest just finding another machine to run this on :/
+
+*/
+
+
 // I got a lot of help from Eli Fieldsteel's YouTube chanel: https://www.youtube.com/watch?v=Oz4KYZ9KLc0
 (
 Server.killAll;
@@ -27,19 +52,22 @@ s.waitForBoot {
 
 	var arpTask;
 
+	~midiOutput = 3;
+
 	~arpEnabled = true;
 	~arpMode = \upward;
 
 	// current chord - can be set equal to the symbol for any of our available chords.
-	~chordEnabled = false;
-	~currentChord = \major;
+	~chordEnabled = true;
+	~currentChord = \minor;
 
 	// if chord mode is off, this keeps track of all pressed notes
 	~heldNotes = List(16);
 
+	~tempo = 50;
 
 	~alter = {
-		|arpEnabled, signal, val, chord, root, tempo = 170|
+		|arpEnabled, signal, val, chord, root, tempo|
 		var notesArray;
 		var updateNotes = {
 			if(~chordEnabled) {
@@ -48,6 +76,7 @@ s.waitForBoot {
 				notesArray = ~heldNotes;
 			};
 		};
+		tempo = ~tempo;
 		updateNotes.value;
 		switch(arpEnabled)
 		{ false } {
@@ -116,7 +145,7 @@ s.waitForBoot {
 	MIDIdef.freeAll;
 	MIDIClient.init;
 	MIDIClient.destinations;
-	m = MIDIOut.new(3); // particular to my PC - will have to be adjusted
+	m = MIDIOut.new(~midiOutput); // particular to my PC - will have to be adjusted
 	MIDIIn.connect;
 
 	(
@@ -149,9 +178,6 @@ s.waitForBoot {
 		});
 
 	);
-
-
-	// GUI
 
 }
 )
